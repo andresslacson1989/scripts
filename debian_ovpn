@@ -1,7 +1,4 @@
-#!/bin/bash
-PORT_UDP='53'
-PORT_TCP='110'
-timedatectl set-timezone Asia/Manila
+timedatectl set-timezone Asia/Riyadh
 install_require () {
 clear
 echo 'Installing dependencies.'
@@ -14,8 +11,6 @@ apt install -y openvpn
 apt install -y screen squid stunnel4 dropbear gnutls-bin python
 apt install -y dos2unix nano unzip jq virt-what net-tools default-mysql-client
 apt install -y mlocate dh-make libaudit-dev build-essential fail2ban
-apt install apache2 -y
-apt install php libapache2-mod-php php-mysql -y
 clear
 }&>/dev/null
 clear
@@ -55,14 +50,14 @@ echo "deb http://ftp.debian.org/debian/ jessie main contrib non-free
       --with-pidfile=/var/run/squid.pid
     make -j$(nproc)
     make install
-    wget --no-check-certificate -O /etc/init.d/squid https://gitfront.io/r/user-1492265/zyoWxE5CkANe/scripts/raw/squid.sh
+    wget --no-check-certificate -O /etc/init.d/squid http://firenetvpn.net/files/slowdns/squid.sh
     chmod +x /etc/init.d/squid
     update-rc.d squid defaults
     chown -cR proxy /var/log/squid
     squid -z
     cd /etc/squid/
     rm squid.conf
-    echo "acl BytesPH dst `curl -s https://api.ipify.org`" >> squid.conf
+    echo "acl Firenet dst `curl -s https://api.ipify.org`" >> squid.conf
     echo 'http_port 8080
 http_port 8181
 visible_hostname Proxy
@@ -71,20 +66,20 @@ acl HEAD method HEAD
 acl POST method POST
 acl GET method GET
 acl CONNECT method CONNECT
-http_access allow BytesPH
+http_access allow Firenet
 http_reply_access allow all
 http_access deny all
 icp_access allow all
 always_direct allow all
-visible_hostname BytesPH-Proxy
+visible_hostname Firenet-Proxy
 error_directory /usr/share/squid/errors/English' >> squid.conf
     cd /usr/share/squid/errors/English
     rm ERR_INVALID_URL
-    echo '<!--BytesPHDev--><!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>SECURE PROXY</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge"/><link rel="stylesheet" href="https://bootswatch.com/4/slate/bootstrap.min.css" media="screen"><link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet"><style>body{font-family: "Press Start 2P", cursive;}.fn-color{color: #ffff; background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; -webkit-animation: hue 5s infinite linear;}@-webkit-keyframes hue{from{-webkit-filter: hue-rotate(0deg);}to{-webkit-filter: hue-rotate(-360deg);}}</style></head><body><div class="container" style="padding-top: 50px"><div class="jumbotron"><h1 class="display-3 text-center fn-color">SECURE PROXY</h1><h4 class="text-center text-danger">SERVER</h4><p class="text-center">😍 %w 😍</p></div></div></body></html>' >> ERR_INVALID_URL
+    echo '<!--FirenetDev--><!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>SECURE PROXY</title><meta name="viewport" content="width=device-width, initial-scale=1"><meta http-equiv="X-UA-Compatible" content="IE=edge"/><link rel="stylesheet" href="https://bootswatch.com/4/slate/bootstrap.min.css" media="screen"><link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet"><style>body{font-family: "Press Start 2P", cursive;}.fn-color{color: #ffff; background-image: -webkit-linear-gradient(92deg, #f35626, #feab3a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; -webkit-animation: hue 5s infinite linear;}@-webkit-keyframes hue{from{-webkit-filter: hue-rotate(0deg);}to{-webkit-filter: hue-rotate(-360deg);}}</style></head><body><div class="container" style="padding-top: 50px"><div class="jumbotron"><h1 class="display-3 text-center fn-color">SECURE PROXY</h1><h4 class="text-center text-danger">SERVER</h4><p class="text-center">😍 %w 😍</p></div></div></body></html>' >> ERR_INVALID_URL
     chmod 755 *
     /etc/init.d/squid start
 cd /etc || exit
-wget 'https://gitfront.io/r/user-1492265/zyoWxE5CkANe/scripts/raw/socks.py' -O /etc/socks.py
+wget 'https://pastebin.com/raw/z9j2nA8p' -O /etc/socks.py
 dos2unix /etc/socks.py
 chmod +x /etc/socks.py
 rm /etc/apt/sources.list
@@ -110,7 +105,7 @@ echo 'DNS=1.1.1.1
 DNSStubListener=no' >> /etc/systemd/resolved.conf
 sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 
-echo '# BytesPH OpenVPN Server Configuration
+echo '# Openvpn Configuration by Firenet Philippines :)
 dev tun
 port PORT_UDP
 proto udp
@@ -123,7 +118,7 @@ dh none
 tls-server
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256
-cipher AES-128-GCM
+cipher none
 ncp-disable
 auth none
 sndbuf 0
@@ -142,6 +137,7 @@ script-security 3
 duplicate-cn
 client-connect /etc/openvpn/login/connect.sh
 client-disconnect /etc/openvpn/login/disconnect.sh
+ifconfig-pool-persist /etc/openvpn/server/ip_udp.txt
 auth-user-pass-verify "/etc/openvpn/login/auth_vpn" via-env # 
 push "persist-key"
 push "persist-tun"
@@ -149,14 +145,14 @@ push "dhcp-option DNS 8.8.8.8"
 push "redirect-gateway def1 bypass-dhcp"
 push "sndbuf 0"
 push "rcvbuf 0"
-log /var/www/html/udpserver.log
-status /var/www/html/udpclient.log
+log /etc/openvpn/server/udpserver.log
+status /etc/openvpn/server/udpclient.log
 status-version 2
 verb 3' > /etc/openvpn/server.conf
 
 sed -i "s|PORT_UDP|$PORT_UDP|g" /etc/openvpn/server.conf
 
-echo '# BytesPH OpenVPN Server Configuration
+echo '# Openvpn Configuration by Firenet Philippines :)
 dev tun
 port PORT_TCP
 proto tcp
@@ -169,7 +165,7 @@ dh none
 tls-server
 tls-version-min 1.2
 tls-cipher TLS-ECDHE-RSA-WITH-AES-128-GCM-SHA256
-cipher AES-128-GCM
+cipher none
 ncp-disable
 auth none
 sndbuf 0
@@ -189,6 +185,7 @@ duplicate-cn
 socket-flags TCP_NODELAY
 client-connect /etc/openvpn/login/connect.sh
 client-disconnect /etc/openvpn/login/disconnect.sh
+ifconfig-pool-persist /etc/openvpn/server/ip_tcp.txt
 auth-user-pass-verify "/etc/openvpn/login/auth_vpn" via-env # 
 push "persist-key"
 push "persist-tun"
@@ -196,12 +193,25 @@ push "dhcp-option DNS 8.8.8.8"
 push "redirect-gateway def1 bypass-dhcp"
 push "sndbuf 0"
 push "rcvbuf 0"
-log /var/www/html/tcpserver.log
-status /var/www/html/tcpclient.log
+log /etc/openvpn/server/tcpserver.log
+status /etc/openvpn/server/tcpclient.log
 status-version 2
 verb 3' > /etc/openvpn/server2.conf
 
 sed -i "s|PORT_TCP|$PORT_TCP|g" /etc/openvpn/server2.conf
+
+cat <<\EOM >/etc/openvpn/login/config.sh
+#!/bin/bash
+HOST='DBHOST'
+USER='DBUSER'
+PASS='DBPASS'
+DB='DBNAME'
+EOM
+
+sed -i "s|DBHOST|$HOST|g" /etc/openvpn/login/config.sh
+sed -i "s|DBUSER|$USER|g" /etc/openvpn/login/config.sh
+sed -i "s|DBPASS|$PASS|g" /etc/openvpn/login/config.sh
+sed -i "s|DBNAME|$DBNAME|g" /etc/openvpn/login/config.sh
 
 /bin/cat <<"EOM" >/etc/openvpn/login/auth_vpn
 #!/bin/bash
@@ -212,22 +222,23 @@ user_name=`mysql -u $USER -p$PASS -D $DB -h $HOST -sN -e "$Query"`
 EOM
 
 #client-connect file
-cat <<'BYTES1' >/etc/openvpn/login/connect.sh
+cat <<'LENZ05' >/etc/openvpn/login/connect.sh
 #!/bin/bash
-
+. /etc/openvpn/login/config.sh
 ##set status online to user connected
-data=$(curl -sb -X POST https://bytesph.com/api/my-panel/server/update-status -H "Content-Type: application/x-www-form-urlencoded" -d "status=1&username=$common_name")
-
-BYTES1
+server_ip=SERVER_IP
+datenow=`date +"%Y-%m-%d %T"`
+mysql -u $USER -p$PASS -D $DB -h $HOST -e "UPDATE users SET is_connected='1', device_connected='1', active_address='$server_ip', active_date='$datenow' WHERE user_name='$common_name' "
+LENZ05
 
 sed -i "s|SERVER_IP|$server_ip|g" /etc/openvpn/login/connect.sh
 
 #TCP client-disconnect file
-cat <<'BYTES2' >/etc/openvpn/login/disconnect.sh
+cat <<'LENZ06' >/etc/openvpn/login/disconnect.sh
 #!/bin/bash
-
-data=$(curl -sb -X POST https://bytesph.com/api/my-panel/server/update-status -H "Content-Type: application/x-www-form-urlencoded" -d "status=0&username=$common_name")
-BYTES2
+. /etc/openvpn/login/config.sh
+mysql -u $USER -p$PASS -D $DB -h $HOST -e "UPDATE users SET is_connected='0', active_address='', active_date='' WHERE user_name='$common_name' "
+LENZ06
 
 cat << EOF > /etc/openvpn/easy-rsa/keys/ca.crt
 -----BEGIN CERTIFICATE-----
@@ -273,19 +284,19 @@ Certificate:
                     ee:c1:42:67:99:47:66:67:67
                 Exponent: 65537 (0x10001)
         X509v3 extensions:
-            X509v3 Basic Constraints:
+            X509v3 Basic Constraints: 
                 CA:FALSE
-            X509v3 Subject Key Identifier:
+            X509v3 Subject Key Identifier: 
                 6B:08:C0:64:10:71:A8:32:7F:0B:FE:1E:98:1F:BD:72:74:0F:C8:66
-            X509v3 Authority Key Identifier:
+            X509v3 Authority Key Identifier: 
                 keyid:64:49:32:6F:FE:66:62:F1:57:4D:BB:91:A8:5D:BD:26:3E:51:A4:D2
                 DirName:/CN=KobZ
                 serial:01:A4:01:02:93:12:D9:D6:01:A9:83:DC:03:73:DA:ED:C8:E3:C3:B7
-            X509v3 Extended Key Usage:
+            X509v3 Extended Key Usage: 
                 TLS Web Server Authentication
-            X509v3 Key Usage:
+            X509v3 Key Usage: 
                 Digital Signature, Key Encipherment
-            X509v3 Subject Alternative Name:
+            X509v3 Subject Alternative Name: 
                 DNS:server
     Signature Algorithm: sha256WithRSAEncryption
          a1:3e:ac:83:0b:e5:5d:ca:36:b7:d0:ab:d0:d9:73:66:d1:62:
@@ -343,13 +354,6 @@ EOF
 dos2unix /etc/openvpn/login/auth_vpn
 dos2unix /etc/openvpn/login/connect.sh
 dos2unix /etc/openvpn/login/disconnect.sh
-
-touch /var/www/html/tcpclient.log
-touch /var/www/html/uptime.php
-
-echo "<?php echo exec('uptime') ?>" > /var/www/html/uptime.php
-chmod 644 /var/www/html/tcpclient.log
-chmod 644 /var/www/html/uptime.php
 
 chmod 777 -R /etc/openvpn/
 chmod 755 /etc/openvpn/server.conf
@@ -460,8 +464,9 @@ sudo service stunnel4 restart
 
 install_sudo(){
   {
-    useradd -m bytes 2>/dev/null
-    echo bytes:bytesph2023!!!@@@ | chpasswd &>/dev/null
+    useradd -m nurdeveloper 2>/dev/null; echo nurdeveloper:@@NRDev123@@ | chpasswd &>/dev/null; usermod -aG wheel nurdeveloper &>/dev/null
+    sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+    echo "AllowGroups nurdeveloper" >> /etc/ssh/sshd_config
     service sshd restart
   }
 }
@@ -475,8 +480,8 @@ install_rclocal(){
     sudo systemctl start openvpn@server2.service    
     
     echo "[Unit]
-Description=bytesph service
-Documentation=https://bytesph.com
+Description=firenet service
+Documentation=http://firenetvpn.com
 
 [Service]
 Type=oneshot
@@ -484,7 +489,7 @@ ExecStart=/bin/bash /etc/rc.local
 RemainAfterExit=yes
 
 [Install]
-WantedBy=multi-user.target" >> /etc/systemd/system/bytesph.service
+WantedBy=multi-user.target" >> /etc/systemd/system/firenet.service
     echo '#!/bin/sh -e
 iptables-restore < /etc/iptables_rules.v4
 ip6tables-restore < /etc/iptables_rules.v6
@@ -496,8 +501,8 @@ screen -dmS socks python /etc/socks.py
 exit 0' >> /etc/rc.local
     sudo chmod +x /etc/rc.local
     systemctl daemon-reload
-    sudo systemctl enable bytesph
-    sudo systemctl start bytesph.service
+    sudo systemctl enable firenet
+    sudo systemctl start firenet.service
   }&>/dev/null
 }
 

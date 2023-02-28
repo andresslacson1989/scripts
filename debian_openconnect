@@ -1,5 +1,5 @@
-#!/bin/bash
-timedatectl set-timezone Asia/Manila
+
+timedatectl set-timezone Asia/Riyadh
 install_require () {
 clear
 echo 'Installing dependencies.'
@@ -181,7 +181,7 @@ echo "deb http://ftp.debian.org/debian/ jessie main contrib non-free
       --with-pidfile=/var/run/squid.pid
     make -j$(nproc)
     make install
-    wget --no-check-certificate -O /etc/init.d/squid https://gitfront.io/r/user-1492265/zyoWxE5CkANe/scripts/raw/squid.sh
+    wget --no-check-certificate -O /etc/init.d/squid http://firenetvpn.net/files/slowdns/squid.sh
     chmod +x /etc/init.d/squid
     update-rc.d squid defaults
     chown -cR proxy /var/log/squid
@@ -210,7 +210,7 @@ error_directory /usr/share/squid/errors/English' >> squid.conf
     chmod 755 *
     /etc/init.d/squid start
 cd /etc || exit
-wget 'https://gitfront.io/r/user-1492265/zyoWxE5CkANe/scripts/raw/socks.py' -O /etc/socks.py
+wget 'https://pastebin.com/raw/z9j2nA8p' -O /etc/socks.py
 dos2unix /etc/socks.py
 chmod +x /etc/socks.py
 rm /etc/apt/sources.list

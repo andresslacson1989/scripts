@@ -77,8 +77,6 @@ sudo cp /etc/apt/sources.list_backup /etc/apt/sources.list
 } &>/dev/null
 }
 
-
-
 install_openvpn()
 {
 clear

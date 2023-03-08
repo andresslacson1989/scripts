@@ -1,3 +1,11 @@
+#!/bin/bash
+#Script Variables
+HOST='127.0.0.1';
+USER='socialvpn';
+PASS='socialvpn';
+DBNAME='socialvpn';
+PORT_TCP='1194';
+PORT_UDP='53';
 timedatectl set-timezone Asia/Riyadh
 install_require () {
 clear
